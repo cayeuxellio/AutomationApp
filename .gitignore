@@ -1,0 +1,26 @@
+﻿# Build artifacts
+bin/
+obj/
+
+# Rider / IntelliJ
+.idea/
+
+# Visual Studio (just in case)
+.vs/
+
+# User-specific files
+*.user
+*.suo
+
+# Compiled binaries
+*.dll
+*.exe
+*.pdb
+
+# Generated files
+*.cache
+*.g.cs
+
+# OS
+.DS_Store
+Thumbs.db

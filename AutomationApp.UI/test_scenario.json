@@ -1,0 +1,11 @@
+﻿[
+  {
+    "type": "if",
+    "condition": "template",
+    "template": "test.png",
+    "threshold": 0.9,
+    "then": [
+      { "type": "type", "text": "Button detected!" }
+    ]
+  }
+]
