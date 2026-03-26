@@ -8,7 +8,7 @@ using AutomationApp.Application.UseCases;
 using AutomationApp.Domain.Interfaces;
 using AutomationApp.Infrastructure.Input;
 using AutomationApp.Infrastructure.Vision;
-using AutomationApp.Domain.Vision;
+using AutomationApp.Infrastructure.Services;
 
 namespace AutomationApp.UI;
 
@@ -29,7 +29,6 @@ public partial class App : System.Windows.Application
         // Infrastructure
         services.AddSingleton<IScreenCaptureService, ScreenCaptureService>();
         services.AddSingleton<SimpleOcrService>();
-        services.AddSingleton<ITemplateMatcher, OpenCvTemplateMatcher>();
         services.AddSingleton<IMouseService, MouseService>();
         services.AddSingleton<IKeyboardService, KeyboardService>();
 

@@ -22,7 +22,14 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Include="..\..\..\.nuget\packages\tesseract.data.english\4.0.0\build\tessdata\eng.traineddata">
+        <Link>bin\Debug\net8.0-windows\tessdata\eng.traineddata</Link>
+      </Content>
       <Content Include="obj\Debug\net8.0-windows\AutomationApp.UI_MarkupCompile.cache" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="bin\Debug\net8.0-windows\" />
     </ItemGroup>
 
 </Project>

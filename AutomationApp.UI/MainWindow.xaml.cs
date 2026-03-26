@@ -2,9 +2,13 @@
 using Microsoft.Win32;
 using AutomationApp.Application.Services;
 using AutomationApp.Application.UseCases;
+using AutomationApp.Application.Automation;
+using AutomationApp.Infrastructure.GameModules;
+using AutomationApp.Infrastructure.Logging;
 using AutomationApp.Domain.Actions;
 using Microsoft.Extensions.DependencyInjection;
 using AutomationApp.Domain.Vision;
+using AutomationApp.Infrastructure.Services;
 using AutomationApp.Infrastructure.Vision;
 
 namespace AutomationApp.UI;
@@ -14,6 +18,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        var gameModule = new MinersHavenModule(
+            new ScreenCaptureService(),
+            new TesseractOcrService());
+        var logger = new ConsoleLogger();
+
+        _engine = new AutomationEngine(gameModule, logger);
     }
 
     private async void OnRunClicked(object sender, RoutedEventArgs e)
@@ -59,16 +70,16 @@ public partial class MainWindow : Window
             MessageBox.Show(ex.ToString()); // IMPORTANT: ToString(), not Message
         }
     }
-    private void TestReadRegion(object sender, RoutedEventArgs e)
+    
+    private IAutomationEngine _engine;
+    
+    private async void Start_Click(object sender, RoutedEventArgs e)
     {
-        var screen = App.Services.GetService<IScreenCaptureService>();
-        var ocr = App.Services.GetService<SimpleOcrService>();
-    
-        var region = new ScreenRegion(0, 0, 300, 200);
-    
-        var imageBytes = screen!.CaptureRegion(region);
-        var text = ocr!.ReadText(imageBytes);
-    
-        MessageBox.Show(text);
+        await _engine.StartAsync();
+    }
+
+    private async void Stop_Click(object sender, RoutedEventArgs e)
+    {
+        await _engine.StopAsync();
     }
 }

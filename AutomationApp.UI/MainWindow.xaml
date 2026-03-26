@@ -12,6 +12,6 @@
         <StackPanel Margin="10">
                 <Button Content="Run Hardcoded Scenario" Click="OnRunClicked" Margin="0,0,0,25"/>
                 <Button Content="Load Scenario from File" Click="OnLoadFromFileClicked" Margin="0,0,0,25"/>
-                <Button Content="check screen" Click="TestReadRegion"/>
+                <Button Content="check screen" Click="Start_Click"/>
         </StackPanel>
 </Window>

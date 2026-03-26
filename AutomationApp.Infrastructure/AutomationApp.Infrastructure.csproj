@@ -5,6 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\AutomationApp.Application\AutomationApp.Application.csproj" />
         <ProjectReference Include="..\AutomationApp.Domain\AutomationApp.Domain.csproj" />
     </ItemGroup>
 
@@ -12,5 +13,13 @@
       <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260318" />
       <PackageReference Include="OpenCvSharp4.Extensions" Version="4.13.0.20260318" />
       <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260302" />
+      <PackageReference Include="System.Drawing.Common" Version="11.0.0-preview.2.26159.112" />
+      <PackageReference Include="Tesseract" Version="5.2.0" />
+      <PackageReference Include="Tesseract.Data.English" Version="4.0.0" />
+      <PackageReference Include="Tesseract.Drawing" Version="5.2.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="bin\Debug\net8.0\" />
     </ItemGroup>
 </Project>
