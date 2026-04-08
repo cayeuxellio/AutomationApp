@@ -1,6 +1,11 @@
-﻿namespace AutomationApp.Domain.Interfaces;
+﻿// AutomationApp.Domain/Interfaces/IOcrService.cs
+using System.Threading.Tasks;
+using AutomationApp.Domain.Common;
 
-public class IOcrService
+namespace AutomationApp.Domain.Interfaces;
+
+public interface IOcrService
 {
-    
+    Task<string> ReadTextFromRegionAsync(ScreenRegion region);
+    Task<decimal> ReadNumberFromRegionAsync(ScreenRegion region);
 }

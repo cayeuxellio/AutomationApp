@@ -1,6 +1,10 @@
-﻿namespace AutomationApp.Application.Services;
+﻿using System.Threading.Tasks;
 
-public class IMinersHavenOcrService
+namespace AutomationApp.Application.Services;
+
+public interface IMinersHavenOcrService
 {
-    
+    Task<decimal> GetCurrentMoneyAsync();
+    Task<bool> IsRebirthButtonVisibleAsync();
+    Task<string> GetRebirthRewardTextAsync();
 }

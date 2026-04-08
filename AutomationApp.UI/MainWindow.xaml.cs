@@ -1,85 +1,135 @@
-﻿using System.Windows;
-using Microsoft.Win32;
-using AutomationApp.Application.Services;
-using AutomationApp.Application.UseCases;
-using AutomationApp.Application.Automation;
-using AutomationApp.Infrastructure.GameModules;
-using AutomationApp.Infrastructure.Logging;
-using AutomationApp.Domain.Actions;
-using Microsoft.Extensions.DependencyInjection;
-using AutomationApp.Domain.Vision;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Windows;
+using AutomationApp.Application.Strategies;
+using AutomationApp.Domain.Interfaces;
+using AutomationApp.Infrastructure.Ocr;
 using AutomationApp.Infrastructure.Services;
-using AutomationApp.Infrastructure.Vision;
 
 namespace AutomationApp.UI;
 
 public partial class MainWindow : Window
 {
+    private readonly Dictionary<string, IGameStrategy> _gameStrategies;
+    private IGameStrategy? _currentStrategy;  // ← Nullable
+    private bool _isRunning;
+    
     public MainWindow()
     {
         InitializeComponent();
-
-        var gameModule = new MinersHavenModule(
-            new ScreenCaptureService(),
-            new TesseractOcrService());
-        var logger = new ConsoleLogger();
-
-        _engine = new AutomationEngine(gameModule, logger);
-    }
-
-    private async void OnRunClicked(object sender, RoutedEventArgs e)
-    {
-        var loader = App.Services.GetRequiredService<ScenarioLoader>();
-        var useCase = App.Services.GetRequiredService<RunAutomationUseCase>();
-
-        var json = """
-                   [
-                       { "type": "click", "x": 500, "y": 500 },
-                       { "type": "wait", "ms": 1000 },
-                       { "type": "type", "text": "Hello from JSON!" }
-                   ]
-                   """;
-
-        var actions = loader.LoadFromJson(json);
-        await useCase.ExecuteAsync(actions);
-    }
-
-    private async void OnLoadFromFileClicked(object sender, RoutedEventArgs e)
-    {
-        try
+        
+        // Initialisation des services
+        var tesseractPath = GetTesseractPath();
+        IOcrService ocrService = new TesseractOcrService(tesseractPath);
+        IScreenCaptureService screenCapture = new ScreenCaptureService();
+        IImagePreprocessor imagePreprocessor = new ImagePreprocessor();
+        
+        // Enregistrement des stratégies
+        _gameStrategies = new Dictionary<string, IGameStrategy>
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog
+            ["Miners Haven"] = new MinersHavenStrategy(ocrService, screenCapture, imagePreprocessor)
+        };
+        
+        GameComboBox.ItemsSource = _gameStrategies.Keys;
+        if (_gameStrategies.Count > 0)
+            GameComboBox.SelectedIndex = 0;
+    }
+    
+    private string GetTesseractPath()
+    {
+        var localPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tessdata");
+        if (System.IO.Directory.Exists(localPath))
+            return localPath;
+            
+        var systemPath = @"C:\Program Files\Tesseract-OCR\tessdata";
+        if (System.IO.Directory.Exists(systemPath))
+            return systemPath;
+            
+        throw new Exception("Tesseract data files not found");
+    }
+    
+    private decimal GetMoneyThreshold()
+    {
+        if (decimal.TryParse(MoneyThresholdBox.Text, out var threshold))
+            return threshold;
+        return 1000000;
+    }
+    
+    private async void StartButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Vérifier qu'un jeu est sélectionné
+        if (GameComboBox.SelectedItem == null)
+        {
+            StatusText.Text = "Please select a game first";
+            return;
+        }
+        
+        string? selectedGame = GameComboBox.SelectedItem.ToString();
+        
+        // Vérifier que la sélection est valide
+        if (selectedGame != null && _gameStrategies.TryGetValue(selectedGame, out var strategy))
+        {
+            _currentStrategy = strategy;
+            _isRunning = true;
+            
+            StartButton.IsEnabled = false;
+            StopButton.IsEnabled = true;
+            StatusText.Text = $"Running - Game: {selectedGame}";
+            
+            await RunMacroLoop();
+        }
+        else
+        {
+            StatusText.Text = "Invalid game selection";
+        }
+    }
+    
+    private void StopButton_Click(object sender, RoutedEventArgs e)
+    {
+        _isRunning = false;
+        StartButton.IsEnabled = true;
+        StopButton.IsEnabled = false;
+        StatusText.Text = "Stopped";
+    }
+    
+    private async Task RunMacroLoop()
+    {
+        while (_isRunning && _currentStrategy != null)
+        {
+            try
             {
-                Filter = "JSON files (*.json)|*.json"
-            };
-
-            if (dialog.ShowDialog() == true)
+                var threshold = GetMoneyThreshold();
+                var currentMoney = await _currentStrategy.GetCurrentMoneyAsync();
+                
+                Dispatcher.Invoke(() =>
+                {
+                    MoneyText.Text = currentMoney >= 0 ? $"${currentMoney:N0}" : "Detecting...";
+                });
+                
+                if (currentMoney >= threshold)
+                {
+                    StatusText.Text = $"Threshold reached! Performing rebirth...";
+                    var success = await _currentStrategy.PerformRebirthAsync();
+                    
+                    if (success)
+                        StatusText.Text = $"Rebirth completed at ${currentMoney:N0}!";
+                    else
+                        StatusText.Text = "Rebirth failed!";
+                    
+                    await Task.Delay(3000);
+                }
+                
+                await Task.Delay(1000);
+            }
+            catch (Exception ex)
             {
-                var json = System.IO.File.ReadAllText(dialog.FileName);
-
-                var loader = App.Services.GetRequiredService<ScenarioLoader>();
-                var useCase = App.Services.GetRequiredService<RunAutomationUseCase>();
-
-                var actions = loader.LoadFromJson(json);
-
-                await useCase.ExecuteAsync(actions);
+                Dispatcher.Invoke(() =>
+                {
+                    StatusText.Text = $"Error: {ex.Message}";
+                });
+                await Task.Delay(5000);
             }
         }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.ToString()); // IMPORTANT: ToString(), not Message
-        }
-    }
-    
-    private IAutomationEngine _engine;
-    
-    private async void Start_Click(object sender, RoutedEventArgs e)
-    {
-        await _engine.StartAsync();
-    }
-
-    private async void Stop_Click(object sender, RoutedEventArgs e)
-    {
-        await _engine.StopAsync();
     }
 }

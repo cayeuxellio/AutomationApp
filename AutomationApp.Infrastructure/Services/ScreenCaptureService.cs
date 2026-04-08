@@ -1,29 +1,22 @@
 ﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using AutomationApp.Application.Services;
+using AutomationApp.Domain.Common;
+using AutomationApp.Domain.Interfaces;
 
-namespace AutomationApp.Infrastructure.Services;
-public class ScreenCaptureService : IScreenCaptureService
+namespace AutomationApp.Infrastructure.Services
 {
-    public byte[] CaptureScreen()
+    public class ScreenCaptureService : IScreenCaptureService
     {
-        var bounds = System.Windows.Forms.Screen.PrimaryScreen.Bounds;
-        return CaptureRegion(bounds.X, bounds.Y, bounds.Width, bounds.Height);
-    }
-
-    public byte[] CaptureRegion(int x, int y, int width, int height)
-    {
-        using var bitmap = new Bitmap(width, height);
-
-        using (var g = Graphics.FromImage(bitmap))
+        public byte[] CaptureRegionAsBytes(ScreenRegion region)
         {
-            g.CopyFromScreen(x, y, 0, 0, bitmap.Size);
+            using var bitmap = new Bitmap(region.Width, region.Height);
+            using var graphics = Graphics.FromImage(bitmap);
+            graphics.CopyFromScreen(region.X, region.Y, 0, 0, new Size(region.Width, region.Height));
+            
+            using var ms = new MemoryStream();
+            bitmap.Save(ms, ImageFormat.Png);
+            return ms.ToArray();
         }
-
-        using var ms = new MemoryStream();
-        bitmap.Save(ms, ImageFormat.Png);
-
-        return ms.ToArray();
     }
 }
