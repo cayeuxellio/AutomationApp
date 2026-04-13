@@ -1,18 +1,12 @@
 ﻿using AutomationApp.Domain.Actions;
 using AutomationApp.Shared.DTOs;
 using AutomationApp.Domain.Conditions;
-using AutomationApp.Domain.Vision;
+
 
 namespace AutomationApp.Application.Factories;
 
 public class ActionFactory
 {
-    private readonly ITemplateMatcher _matcher;
-
-    public ActionFactory(ITemplateMatcher matcher)
-    {
-        _matcher = matcher;
-    }
     public IAction Create(ScenarioStepDto step)
     {
         if (string.IsNullOrWhiteSpace(step.Type))
@@ -58,14 +52,6 @@ public class ActionFactory
         {
             case "always":
                 return new AlwaysTrueCondition();
-
-            case "template":
-                if (string.IsNullOrWhiteSpace(step.Template))
-                    throw new Exception("Template condition requires 'template'.");
-
-                var threshold = step.Threshold ?? 0.8;
-
-                return new TemplateCondition(step.Template, threshold, _matcher);
 
             default:
                 throw new Exception($"Unknown condition: {step.Condition}");

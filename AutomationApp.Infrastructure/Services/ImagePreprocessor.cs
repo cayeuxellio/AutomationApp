@@ -1,19 +1,29 @@
 ﻿using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
+using AutomationApp.Domain.Interfaces;
 
-public static class ImagePreprocessor
+namespace AutomationApp.Infrastructure.Services
 {
-    public static byte[] Preprocess(byte[] input)
+    public class ImagePreprocessor : IImagePreprocessor
     {
-        using var ms = new MemoryStream(input);
-        using var bitmap = new Bitmap(ms);
-
-        // (for now, no processing)
+        public byte[] Preprocess(byte[] imageData)
+        {
+            // Pour l'instant, retourner l'image inchangée
+            return imageData;
+        }
         
-        using var output = new MemoryStream();
-        bitmap.Save(output, ImageFormat.Png);
-
-        return output.ToArray();
+        // Version alternative qui retourne Bitmap pour usage interne
+        private Bitmap ByteArrayToBitmap(byte[] imageData)
+        {
+            using var ms = new MemoryStream(imageData);
+            return new Bitmap(ms);
+        }
+        
+        private byte[] BitmapToByteArray(Bitmap bitmap)
+        {
+            using var ms = new MemoryStream();
+            bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            return ms.ToArray();
+        }
     }
 }

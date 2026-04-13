@@ -20,4 +20,9 @@
         <Using Include="Xunit"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\AutomationApp.Application\AutomationApp.Application.csproj" />
+      <ProjectReference Include="..\AutomationApp.Infrastructure\AutomationApp.Infrastructure.csproj" />
+    </ItemGroup>
+
 </Project>
